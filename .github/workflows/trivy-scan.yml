@@ -1,0 +1,47 @@
+name: Docker image security scan (Trivy)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write   # needed to upload SARIF to the Security tab
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build the demo image
+        run: docker build -t trivy-demo-app:${{ github.sha }} .
+
+      # Step 1 — config/IaC scan: catches Dockerfile misconfigurations
+      # (running as root, missing HEALTHCHECK, etc.) before the image is even scanned.
+      - name: Scan Dockerfile for misconfigurations
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: config
+          scan-ref: .
+          exit-code: 0   # advisory only, does not fail the build
+
+      # Step 2 — image scan: the actual gate. Fails the job (exit-code 1)
+      # if a CRITICAL or HIGH vulnerability with a fix is found.
+      - name: Scan built image for vulnerabilities
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: trivy-demo-app:${{ github.sha }}
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: 1
+
+      - name: Upload SARIF to GitHub Security tab
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
