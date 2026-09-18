@@ -1,0 +1,8 @@
+# CVEs explicitly accepted as risk, with justification and owner.
+# Format: <CVE-ID> exp:<expiry-date>
+#
+# CVE-2018-18074 - requests: Proxy-Authorization header leak on cross-origin
+# redirect. Demo app makes no cross-origin requests through a proxy;
+# accepted until the next dependency refresh.
+# Reviewed by: platform-security, 2026-09-12
+CVE-2018-18074 exp:2026-12-31
