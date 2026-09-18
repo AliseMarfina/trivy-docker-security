@@ -1,0 +1,24 @@
+# Trivy configuration file.
+# Any flag that trivy accepts on the CLI can be set here instead;
+# this keeps `trivy image ...` / `trivy fs ...` invocations short and
+# makes the security policy for the project explicit and version-controlled.
+
+# Only report/fail on vulnerabilities that actually matter for a release gate.
+severity:
+  - CRITICAL
+  - HIGH
+
+# Exit code 1 turns a scan with findings into a failed CI job (the "edge case").
+exit-code: 1
+
+# Skip vulnerabilities that have no fix yet available upstream so the
+# pipeline doesn't block on issues the team cannot remediate right now.
+ignore-unfixed: true
+
+# Where the vulnerability DB is cached between runs (mounted as a volume in CI).
+cache-dir: .trivycache
+
+format: table
+
+# File listing individually accepted/ignored CVEs, each with a reason and owner.
+ignorefile: .trivyignore
